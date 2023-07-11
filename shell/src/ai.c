@@ -15,10 +15,10 @@ extern s32 D_80227C10;
 #endif
 
 
-void func_802061A0(void* addr, int len, u32 dacrate, u32 bitrate) {
+void func_802061A0(void* addr, int len, u32 dacrate, u32 bitrate, u32 is_error) {
     vu32* ai_regs = (vu32*)PHYS_TO_K1(AI_BASE_REG);
 #ifdef BUG_FIX_AUDIO
-    if (ai_regs[3] & AI_STATUS_DMA_BUSY) {
+    if (ai_regs[3] & is_error) {
         return; // prevent sfx playing twice
     }
     ai_regs[0] = (u32)addr;
@@ -36,13 +36,13 @@ void func_802061A0(void* addr, int len, u32 dacrate, u32 bitrate) {
 }
 
 void func_802061D0(s32 arg0) {
-    if (D_80227C10 != 0) {
+    //if (D_80227C10 != 0) {
         if (arg0 == 0) {
-            func_802061A0(sfx0_bin, SAMPLES_TO_LEN(sfx1_bin - sfx0_bin), DACRATE, BITRATE);        
+            func_802061A0(sfx0_bin, SAMPLES_TO_LEN(sfx1_bin - sfx0_bin), DACRATE, BITRATE, 0);        
         } else {
-            func_802061A0(sfx1_bin, SAMPLES_TO_LEN(sfxpad_bin - sfx1_bin), DACRATE, BITRATE);
+            func_802061A0(sfx1_bin, SAMPLES_TO_LEN(_2D25C_bin - sfx1_bin), DACRATE, BITRATE, AI_STATUS_DMA_BUSY);
         }
-    }
+    //}
 }
 
 #ifndef NON_MATCHING

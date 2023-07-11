@@ -92,8 +92,8 @@ $(TARGET): $(ELF)
 	dd if=$(@:.bin=.tmp) of=$@ bs=16 conv=sync status=none
 	@$(RM) $(@:.bin=.tmp)
 
-$(ELF): $(O_FILES) $(NAME).$(VERSION).ld
-	$(LD) -T $(NAME).$(VERSION).ld --accept-unknown-input-arch -T undefined_syms_$(VERSION).txt -T undefined_funcs_$(VERSION).txt -o $@ -Map $(@:.elf=.map)
+$(ELF): $(O_FILES) $(NAME)_patched.$(VERSION).ld
+	$(LD) -T $(NAME)_patched.$(VERSION).ld --accept-unknown-input-arch -T undefined_syms_$(VERSION).txt -T undefined_funcs_$(VERSION).txt -o $@ -Map $(@:.elf=.map)
 
 build/$(VERSION):
 	mkdir $@

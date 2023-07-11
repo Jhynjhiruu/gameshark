@@ -64,7 +64,7 @@ O_FILES += build/$(VERSION)/assets/$(VERSION)/fsblob.bin.o
 
 ifeq ($(USE_BUILT_SHELL),1)
 ifeq ($(VERSION),us)
-FSBLOB_FILES := shell/build/us/shell.bin fs/us/gslogo3.bin fs/us/gslogo3.pal fs/us/tile1.tg~
+FSBLOB_FILES := shell/build/us/shell.bin fs/us/lslogo4.bin fs/us/lslogo4.pal fs/us/tile1.tg~
 else
 FSBLOB_FILES := shell/build/eu/shell.bin fs/eu/arlogo3.bin fs/eu/arlogo3.pal fs/eu/tile1.tg~
 endif

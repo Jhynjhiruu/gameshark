@@ -10,7 +10,7 @@ u32 func_802078E0(void) {
     cartStart = READ32(PHYS_TO_K1(0x12C00000));
     func_80217D40(PHYS_TO_K1(0x1E000000));
     D_802283C0 = 0x400000;
-    return cartStart == 0x80371240;
+    return cartStart == 0xDEADBEEF;
 }
 
 INCLUDE_ASM(const s32, "scousers", func_80207940);
