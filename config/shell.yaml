@@ -1,0 +1,151 @@
+name: shell.bin (USA 3.30-20000404)
+sha1: 1b939e4cfbbfbb350534f2c460628722a5145158
+options:
+  basename: shell
+  target_path: fs/loader/shell.bin
+  elf_path: build/shell.elf
+  base_path: ..
+  platform: n64
+  compiler: SN64
+
+  asm_path: asm/shell
+  src_path: src/shell
+  build_path: build
+  asset_path: assets/shell
+  # create_asm_dependencies: True
+
+  ld_script_path: shell.ld
+  ld_dependencies: True
+
+  find_file_boundaries: True
+  header_encoding: ASCII
+
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  mips_abi_float_regs: o32
+
+  # asm_function_macro: glabel
+  # asm_jtbl_label_macro: jlabel
+  # asm_data_macro: dlabel
+
+  section_order: [".text", ".rdata", ".rodata", ".data", ".sdata", ".bss", ".sbss"]
+  auto_link_sections: [".text", ".rdata", ".data"]
+
+  symbol_addrs_path:
+    - symbol_addrs.txt
+  reloc_addrs_path:
+    - reloc_addrs.txt
+
+  # undefined_funcs_auto_path: undefined_funcs_auto.txt
+  # undefined_syms_auto_path: undefined_syms_auto.txt
+
+  extensions_path: tools/splat_ext
+
+  # string_encoding: ASCII
+  # data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  # libultra_symbols: True
+  # hardware_regs: True
+  # gfx_ucode: # one of [f3d, f3db, f3dex, f3dexb, f3dex2]
+  hasm_in_src_path: true
+  named_regs_for_c_funcs: false
+  migrate_rodata_to_functions: true
+  pair_rodata_to_text: true
+  ld_bss_is_noload: true
+  ld_symbol_header_path: include/shell/linker.h
+  add_set_gp_64: false
+  ld_sections_denylist: [".bss", ".sbss"]
+segments:
+  - name: main
+    type: code
+    start: 0x0
+    vram: 0x80200400
+    subsegments:
+      - [0x0, c, main]
+      - [0x430, c]
+      - [0x540, c]
+      - [0x2CA0, asm]
+      - [0x5050, asm]
+      - [0x5DA0, c, ai]
+      - [0x5E30, asm]
+      - [0x637C, pad]
+      - [0x6380, asm]
+      - [0x74E0, c, scousers]
+      - [0x7D5C, pad]
+      - [0x7D60, asm]
+      - [0xB5DC, pad]
+      - [0xB5E0, asm]
+      - [0xC9A0, asm]
+      - [0xD880, asm]
+      - [0xDF40, asm]
+      - [0xFED0, asm]
+      - [0x109A0, asm]
+      - [0x114D0, asm]
+      - [0x140E0, c]
+      - [0x144A0, asm]
+      - [0x15360, c]
+      - [0x155D0, c]
+      - [0x15940, asm, lzari]
+      - [0x17280, c]
+      - [0x17630, c]
+      - [0x17810, c]
+      - [0x178C0, c]
+      - [0x17990, c]
+      - [0x17A50, c]
+      - [0x17F00, asm]
+      - [0x18410, hasm]
+      - [0x18AC0, gsfont, font, 256, extra, 0x2014]
+      - [0x1F6E0, hasm]
+      - [0x1FB00, hasm]
+      - [0x20CD0, asm]
+      - [0x22720, .rdata, "540"]
+      - [0x227B0, rdata, "2CA0"]
+      - [0x22860, rdata, "5050"]
+      - [0x22920, rdata, "6380"]
+      - [0x22940, .rdata, scousers]
+      - [0x22A00, rdata, "7D60"]
+      - [0x22CE0, rdata, "B5E0"]
+      - [0x22D60, rdata, "C9A0"]
+      - [0x22DE0, rdata, "FED0"]
+      - [0x22E00, rdata, "109A0"]
+      - [0x24670, rdata, "114D0"]
+      - [0x246D0, rdata, "144A0"]
+      - [0x24850, .rdata, "17630"]
+      - [0x24880, i4, dummy_font, 8, 768]
+      - [0x25480, .data, main]
+      - [0x25490, .data, "430"]
+      - [0x25600, .data, "540"]
+      - [0x276D0, data, "5E30"]
+      - [0x276E0, data, "6380"]
+      - [0x27790, data, "7D60"]
+      - [0x277C0, data, "C9A0"]
+      - [0x27820, data, "109A0"]
+      - [0x27E90, data, "114D0"]
+      - [0x27F80, data, "144A0"]
+      - [0x27FA0, .data, "17280"]
+      - [0x27FB0, .data, "17810"]
+      - [0x27FC0, .data, "178C0"]
+      - [0x27FD0, data, "17F00"]
+
+  - name: fsblob
+    type: fsblob
+    start: 0x27FE0
+    out_dir: fs/shell
+    vram: 0x802283E0
+
+  - name: sfx0
+    type: bin
+    subalign: 1
+    start: 0x296BD
+  
+  - name: sfx1
+    type: bin
+    subalign: 1
+    start: 0x2B3B3
+  
+  - name: 2D259
+    type: bin
+    start: 0x2D259
+
+  - [0x402C0]

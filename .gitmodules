@@ -1,0 +1,21 @@
+[submodule "asm-differ"]
+	path = tools/asm-differ
+	url = https://github.com/simonlindholm/asm-differ.git
+[submodule "sharkpatch"]
+	path = tools/sharkpatch
+	url = https://github.com/Jhynjhiruu/sharkpatch.git
+[submodule "sike"]
+	path = tools/sike
+	url = https://github.com/Jhynjhiruu/sike.git
+[submodule "fsblob"]
+	path = tools/fsblob
+	url = https://github.com/Jhynjhiruu/fsblob.git
+[submodule "gscheat"]
+	path = tools/gscheat
+	url = https://github.com/Jhynjhiruu/gscheat.git
+[submodule "gscrc"]
+	path = tools/gscrc
+	url = https://github.com/Jhynjhiruu/gscrc.git
+[submodule "gsfont"]
+	path = tools/gsfont
+	url = https://github.com/Jhynjhiruu/gsfont.git

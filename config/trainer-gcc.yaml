@@ -1,0 +1,113 @@
+name: trainer.bin (USA 3.30-20000404)
+sha1: 445712c757ef3e0a52733ffbcf743295e49f34f6
+options:
+  basename: trainer-gcc
+  target_path: fs/loader/trainer.bin
+  elf_path: build/trainer.elf
+  base_path: ..
+  platform: n64
+  compiler: GCC
+
+  asm_path: asm/trainer-gcc
+  src_path: src/trainer
+  build_path: build
+  asset_path: assets/trainer-gcc
+  # create_asm_dependencies: True
+
+  ld_script_path: trainer-gcc.ld
+  ld_dependencies: True
+
+  find_file_boundaries: True
+  header_encoding: ASCII
+
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  mips_abi_float_regs: o32
+
+  # asm_function_macro: glabel
+  # asm_jtbl_label_macro: jlabel
+  # asm_data_macro: dlabel
+
+  section_order: [".text", ".rdata", ".rodata", ".sbss", ".sdata", ".bss", ".data"]
+  #auto_link_sections: [".text", ".rodata", ".sbss", ".data"]
+
+  symbol_addrs_path:
+    - symbol_addrs.txt
+  reloc_addrs_path:
+    - reloc_addrs.txt
+
+  # undefined_funcs_auto_path: undefined_funcs_auto.txt
+  # undefined_syms_auto_path: undefined_syms_auto.txt
+
+  extensions_path: tools/splat_ext
+
+  # string_encoding: ASCII
+  # data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  # libultra_symbols: True
+  # hardware_regs: True
+  # gfx_ucode: # one of [f3d, f3db, f3dex, f3dexb, f3dex2]
+  hasm_in_src_path: true
+  named_regs_for_c_funcs: true
+  migrate_rodata_to_functions: true
+  pair_rodata_to_text: true
+  ld_bss_is_noload: false
+  ld_symbol_header_path: include/shell/linker.h
+segments:
+  - name: main
+    type: code
+    start: 0x0
+    vram: 0x80780800
+    subsegments:
+      - [0x0, c, main]
+      - [0xE0, c, eeprom]
+      - [0x450, c, led]
+      - [0x590, c]
+      - [0xAE0, hasm]
+      - [0xC40, c]
+      - [0xF80, c]
+      - [0x1180, asm]
+      - [0x4140, hasm]
+      - [0x4B90, asm]
+      - [0x5390, c, libc]
+      - [0x55F0, asm]
+      - [0x5960, asm]
+      - [0x6980, asm]
+      - [0x7200, hasm]
+      - [0x73B0, c]
+      - [0x73E0, c]
+      - [0x7780, c, hw]
+      - [0x7850, c]
+      - [0xF8E0, c]
+      - [0x115B0, asm]
+      - [0x123C0, asm]
+      - [0x14280, hasm]
+      - [0x145C0, rdata] # 1180
+      - [0x146B0, rdata] # 4140
+      - [0x14820, rdata] # 5960
+      - [0x14830, .rdata, "7850"]
+      - [0x14840, .rdata, "F8E0"]
+      - [0x14860, .rdata, strings]
+      - [0x150E0, rdata] # 115B0
+      - [0x150F0, rdata] # 123C0
+      - [0x15110, .data, led]
+      - [0x15150, .data, "590"]
+      - [0x15160, data]
+      - [0x15180, .data, "C40"]
+      - [0x15190, data] # 1180
+
+      - type: fsblob
+        start: 0x151B0
+        out_dir: fs/trainer
+        follows_vram: main
+
+      - [0x194F0, .data, "73E0"]
+      - [0x19500, .data, hw]
+      - [0x19510, .data, "7850"]
+      - [0x19610, .data, "F8E0"]
+      - [0x19620, .data, strings]
+      - [0x19800, bin]
+  - [0x19880, bin]
+      
+  - [0x19948]

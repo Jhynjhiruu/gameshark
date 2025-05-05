@@ -1,0 +1,48 @@
+# Make magic that needs to happen
+
+.PHONY: all setup split clean splitclean distclean
+
+.DEFAULT: all
+
+# Settings you might want to play with
+
+COMPARE := 1
+
+# Settings you probably shouldn't play with
+
+BASE_NAME := trainer
+
+C_FILES := src/main.c src/eeprom.c src/led.c src/590.c src/C40.c src/F80.c src/libc.c src/73B0.c src/73E0.c src/hw.c src/7850.c src/F8E0.c src/strings.c
+M_FILES := src/1180.c src/4B90.c   src/55F0.c src/5960.c src/6980.c       src/115B0.c src/123C0.c
+S_FILES := src/AE0.s src/4140.s src/7200.s src/14280.s
+D_FILES := data/145C0.rdata.s data/146B0.rdata.s data/14820.rdata.s   data/150E0.rdata.s data/150F0.rdata.s data/15160.data.s  data/15190.data.s data/151B0.fsblob.s
+B_FILES := assets/19800.bin assets/19880.bin
+
+FSBLOB_FILES := fs/TILE1~1.TG~ fs/TILE2~1.TG~ fs/TILE3~1.TG~ fs/TILE4~1.TG~ fs/tile1.tg~ fs/tile2.tg~ fs/tile3.tg~ fs/menuf.tg~ fs/bits.tg~
+
+# Flags
+
+# Flags that change based on whether we're matching or not
+
+ifeq ($(COMPARE),1)
+	PATCHES := 448:9DC395EE1FC688BE AD8:AC6201308FBF0014 C34:02421024104000083C020100 F74:8E42889024060140AFBF0030 117C:AFB30018 55EC:8D050000 73A8:8078BF188078BF74 73D8:8078CE308078CE30 7778:8078CF008078CE74 7848:8078CDE08078CE88 F8DC:16200009 115A8:AFBF00140C1E46D8 1483A:766F69642044 14854:6F6964202A70726F63312869 150D4:556E6B6E6F776E2056616C75 150E2:536561726368000000004B6E6F77 15148:6D2C20696E742077 15188:45E046E148914CF4 17DAF:7E 18472:7E 18CEF:7E 191BF:7E 1941F:7E
+	FSBLOB_ARGS := --pad 0x4340 --byte 0x00
+else
+	PATCHES := 
+	FSBLOB_ARGS := 
+endif
+
+# Rules
+
+# Main rule + match check
+all: compare
+
+include Makefile.common
+
+compare: $(BINARY)
+ifeq ($(COMPARE),1)
+	@sha1sum $<
+	@sha1sum -c $(BASE_NAME).sha1
+endif
+
+include $(TOOLS_DIR)/Makefile

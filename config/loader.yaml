@@ -1,0 +1,118 @@
+name: GameShark (USA 3.30-20000404)
+sha1: 5ac1387c18b0632f7d4c1106eb591d801835c57e
+options:
+  basename: loader
+  target_path: baserom.z64
+  elf_path: build/loader.elf
+  base_path: ..
+  platform: n64
+  compiler: SN64
+
+  asm_path: asm/loader
+  src_path: src/loader
+  build_path: build
+  asset_path: assets/loader
+  # create_asm_dependencies: True
+
+  ld_script_path: loader.ld
+  ld_dependencies: True
+
+  find_file_boundaries: True
+  header_encoding: ASCII
+
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  mips_abi_float_regs: o32
+
+  # asm_function_macro: glabel
+  # asm_jtbl_label_macro: jlabel
+  # asm_data_macro: dlabel
+
+  section_order: [".text", ".rdata", ".rodata", ".sbss", ".bss", ".data"]
+  #auto_link_sections: [".text", ".rodata", ".sbss", ".data"]
+
+  symbol_addrs_path:
+    - symbol_addrs.txt
+  reloc_addrs_path:
+    - reloc_addrs.txt
+
+  # undefined_funcs_auto_path: undefined_funcs_auto.txt
+  # undefined_syms_auto_path: undefined_syms_auto.txt
+
+  extensions_path: tools/splat_ext
+
+  # string_encoding: ASCII
+  # data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  # libultra_symbols: True
+  # hardware_regs: True
+  # gfx_ucode: # one of [f3d, f3db, f3dex, f3dexb, f3dex2]
+  hasm_in_src_path: true
+  named_regs_for_c_funcs: false
+  migrate_rodata_to_functions: false
+  pair_rodata_to_text: true
+  ld_bss_is_noload: false
+  ld_symbol_header_path: include/loader/linker.h
+segments:
+  - name: header
+    type: code
+    start: 0x0
+    vram: 0
+    subsegments:
+      - [0x0, hasm, header]
+
+  - name: boot
+    type: bin
+    start: 0x40
+
+  - name: loader
+    type: code
+    start: 0x1000
+    vram: 0x80200400
+    subsegments:
+      - [0x1000, hasm, loader]
+
+  - name: main
+    type: code
+    start: 0x1180
+    vram: 0x80040180
+    subsegments:
+      - [0x1180, c, main]
+      - [0x1560, c, pi]
+      - [0x1580, c, hw]
+      - [0x17C0, c, lzari]
+      - [0x3060, c, libc]
+      - [0x32C0, hasm, util]
+      - [0x3410, c, si]
+      - [0x34C0, c, led]
+      - [0x3650, c, "3650"]
+      - [0x39C0, .rdata, main]
+      - [0x3A00, .rdata, hw]
+      - [0x3A20, .rdata, lzari]
+      - [0x3A30, .sbss, libc]
+      - [0x3A40, .sbss, lzari]
+      - [0x3AA0, .data, hw]
+      - [0x3AB0, .data, lzari]
+      - [0x3AD0, .data, led]
+      - [0x3B10, .data, "3650"]
+
+      - name: fsblob
+        type: fsblob
+        start: 0x3B20
+        out_dir: fs/loader
+        follows_vram: main
+
+  - name: data
+    type: code
+    start: 0x2F000
+    vram: 0x8006E000
+    subsegments:
+      - [0x2F000, hasm, except_redir]
+      - [0x2FC00, pad, keycodes]
+  
+  - name: cheats
+    type: gscheat
+    start: 0x30000
+
+  - [0x40000]

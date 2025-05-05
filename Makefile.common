@@ -1,0 +1,190 @@
+# Settings you might want to play with
+
+KEEP := 0
+ifeq ($(KEEP),1)
+.SECONDARY:
+endif
+
+GCC := 0
+ifeq ($(GCC),0)
+
+else
+	BASE_NAME := $(BASE_NAME)-gcc
+endif
+
+# Settings you probably shouldn't play with
+
+CONFIG_DIR := config
+BUILD_DIR := build
+TOOLS_DIR := tools
+
+$(shell mkdir -p $(BUILD_DIR) $(BUILD_DIR)/src $(BUILD_DIR)/src/$(BASE_NAME) $(BUILD_DIR)/asm $(BUILD_DIR)/asm/$(BASE_NAME) $(BUILD_DIR)/asm/$(BASE_NAME)/data $(BUILD_DIR)/assets $(BUILD_DIR)/assets/$(BASE_NAME))
+
+BASEROM := baserom.z64
+
+YAML_FILE := $(CONFIG_DIR)/$(BASE_NAME).yaml
+LD_FILE := $(BASE_NAME).ld
+MAP_FILE := $(BUILD_DIR)/$(BASE_NAME).map
+
+# Tools
+
+SN64_PATH := $(TOOLS_DIR)/sn64
+
+SET_CPATH := COMPILER_PATH=$(SN64_PATH)
+
+ifeq ($(OS),Windows_NT)
+	WINE := 
+	CROSS := $(N64_INST)/bin/mips64-elf-
+else
+	WINE := $(SET_CPATH) wine
+	CROSS := mips-linux-gnu-
+endif
+
+SPLAT := splat
+PIGMENT := pigment64
+
+SN64_GCC := $(WINE) $(SN64_PATH)/cc1n64.exe
+SN64_CPP := $(WINE) $(SN64_PATH)/cppn64.exe
+SN64_AS  := $(WINE) $(SN64_PATH)/asn64.exe
+SN64_LD  := $(WINE) $(SN64_PATH)/psylink.exe
+LD		 := $(CROSS)ld
+CC		 := $(CROSS)gcc
+OBJCOPY  := $(CROSS)objcopy
+CP		 := cp
+
+UNIX2DOS := unix2dos
+
+# Target definitions
+
+BINARY := $(BUILD_DIR)/$(BASE_NAME).bin
+OUT := $(BINARY:.bin=.out)
+ELF := $(BINARY:.bin=.elf)
+
+# Source files
+
+O_FILES := $(foreach f,$(C_FILES:src/%.c=src/$(BASE_NAME)/%.o),$(BUILD_DIR)/$f) \
+		   $(foreach f,$(M_FILES:src/%.c=asm/$(BASE_NAME)/%.o),$(BUILD_DIR)/$f) \
+		   $(foreach f,$(S_FILES:src/%.s=src/$(BASE_NAME)/%.o),$(BUILD_DIR)/$f) \
+		   $(foreach f,$(D_FILES:%.s=asm/$(BASE_NAME)/%.o),$(BUILD_DIR)/$f) \
+		   $(foreach f,$(B_FILES:assets/%.bin=assets/$(BASE_NAME)/%.o),$(BUILD_DIR)/$f)
+
+# Flags
+
+INC_DIRS := include include/$(BASE_NAME)
+
+DIRECT_INC := $(foreach f,$(INC_DIRS),-I$f)
+PARAM_INC  := $(foreach f,$(INC_DIRS),-Xassembler -I$f -Xpreprocessor -I$f)
+SN64_CPPFLAGS := $(DIRECT_INC) -D__SN64__
+SN64_CFLAGS := -mcpu=vr4300 -mips3 -mhard-float -meb -mno-abicalls
+SN64_OPTFLAGS := -O2 -g3
+ABI := 32
+ASFLAGS := $(PARAM_INC) -G0 -EB -mtune=vr4300 -march=vr4300 -O1 -Dglabel=.globl -mno-abicalls -c
+SN64_ASFLAGS := $(DIRECT_INC)
+
+IMAGE_FORMAT := rgba32
+
+GSFONT_PARAMS :=
+
+KEYCODES := "7101:Mario World 64 & Others:80180000" "7103:Diddy, 1080, Banjo, Griffey:80201000" "7106:Yoshis, F-Zero, C'World:80200400" "7105:Zelda:80190000"
+
+# Flags that change based on whether we're matching or not
+
+ifeq ($(COMPARE),1)
+	SN64_CPPFLAGS +=
+	ASFLAGS +=
+	GSFONT_PARAMS += --matching
+else
+	SN64_CPPFLAGS += -DNON_MATCHING
+	ASFLAGS += -DNON_MATCHING
+	GSFONT_PARAMS +=
+endif
+
+# Rules
+
+# Final output
+$(BINARY): $(OUT)
+	$(TOOLS_DIR)/$(SHARKPATCH) $< $@ $(foreach p,$(PATCHES),-p $p)
+
+$(OUT): $(BUILD_DIR)/$(BASE_NAME).tmp
+	dd if=$< of=$@ bs=8 conv=sync status=none
+
+# Dump ELF out to binary
+$(BUILD_DIR)/$(BASE_NAME).tmp: $(ELF)
+	$(OBJCOPY) -O binary $< $@
+
+# Link objects into a final ELF
+$(ELF): $(O_FILES) | $(LD_FILE)
+	$(LD) -T $| --accept-unknown-input-arch --no-warn-mismatch -T undefined_syms_$(BASE_NAME).txt -T undefined_funcs_$(BASE_NAME).txt -T match_syms_$(BASE_NAME).txt -o $@ -Map $(MAP_FILE)
+
+# Convert Psy-Q objects to ELF objects
+$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.obj
+	$(TOOLS_DIR)/$(SIKE) $< $@
+
+# Assemble compiled C source into a Psy-Q object
+$(BUILD_DIR)/%.obj: $(BUILD_DIR)/%.c.s
+	$(SN64_AS) $< -o $@
+
+# Compile preprocessed C source to assembly
+$(BUILD_DIR)/%.c.s: $(BUILD_DIR)/%.c.i
+	$(SN64_GCC) $(SN64_CFLAGS) $(SN64_OPTFLAGS) $< -o $@
+
+# Preprocess C source
+$(BUILD_DIR)/%.c.i: %.c
+	$(SN64_CPP) $(SN64_CPPFLAGS) $< -o $@
+
+# Assemble handwritten assembly to ELF object
+$(BUILD_DIR)/src/%.o: src/%.s
+	$(CC) -x assembler-with-cpp $(ASFLAGS) -mabi=$(ABI) $< -o $@
+#	$(SN64_AS) $(SN64_ASFLAGS) $< -o $@
+
+# Assemble non-migrated assembly to ELF object
+$(BUILD_DIR)/asm/%.obj: asm/%.s
+	$(UNIX2DOS) $<
+	$(SN64_AS) $(SN64_ASFLAGS) $< -o $@
+
+# Copy binary files directly into ELF objects
+$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.bin
+	$(OBJCOPY) -I binary -O elf32-big $(OBJCOPY_FLAGS) $< $@
+
+$(BUILD_DIR)/%.bin: %.bin
+	$(CP) -f $< $@
+
+# Build FSBlob from source files
+$(BUILD_DIR)/assets/$(BASE_NAME)/fsblob.bin: $(FSBLOB_FILES:fs/%=fs/$(BASE_NAME)/%)
+	$(TOOLS_DIR)/$(FSBLOB) build -o $@ $^ $(FSBLOB_ARGS)
+
+# Build FSBlob from source files
+$(BUILD_DIR)/asm/$(BASE_NAME)/data/%.fsblob.o: $(BUILD_DIR)/assets/$(BASE_NAME)/fsblob.bin
+	$(OBJCOPY) -I binary -O elf32-big $(OBJCOPY_FLAGS) $< $@
+
+# Build dummy font from source image
+$(BUILD_DIR)/assets/$(BASE_NAME)/%.bin: assets/$(BASE_NAME)/%.png
+	$(PIGMENT) to-bin -o $@ -f $(IMAGE_FORMAT) $<
+
+# Assemble font to ELF object
+$(BUILD_DIR)/assets/$(BASE_NAME)/font.o: $(BUILD_DIR)/assets/$(BASE_NAME)/font.s
+	$(CC) -x assembler-with-cpp $(ASFLAGS) -mabi=$(ABI) $< -o $@
+#	$(SN64_AS) $(SN64_ASFLAGS) $< -o $@
+
+# Build font from source image
+$(BUILD_DIR)/assets/$(BASE_NAME)/font.s: assets/$(BASE_NAME)/font.png $(EXTRA_PATH)
+	$(TOOLS_DIR)/$(GSFONT) $< $@ $(EXTRA_PATH) build $(GSFONT_PARAMS) $(FONT_NAMES)
+
+# Build cheats file from text
+$(BUILD_DIR)/%.bin: %.txt
+	$(TOOLS_DIR)/$(GSCHEAT) $< $@ build --pad 0x10000
+
+# Split baserom
+split: setup $(BASEROM)
+	$(SPLAT) split $(YAML_FILE)
+
+# Clean build
+clean:
+	$(RM) -rf $(BUILD_DIR)/src/$(BASE_NAME) $(BUILD_DIR)/asm/$(BASE_NAME) $(BUILD_DIR)/assets/$(BASE_NAME)
+	$(RM) -rf $(BINARY) $(OUT) $(ELF)
+
+# Remove all split assets
+splitclean:
+	$(RM) -rf asm/$(BASE_NAME) assets/$(BASE_NAME) fs/$(BASE_NAME)
+
+-include $(BASE_NAME).d

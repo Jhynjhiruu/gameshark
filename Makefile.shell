@@ -1,0 +1,53 @@
+# Make magic that needs to happen
+
+.PHONY: all setup split clean splitclean distclean
+
+.DEFAULT: all
+
+# Settings you might want to play with
+
+COMPARE := 1
+
+# Settings you probably shouldn't play with
+
+BASE_NAME := shell
+
+C_FILES := src/main.c src/430.c src/540.c     src/ai.c    src/scousers.c  src/140E0.c     src/15360.c src/155D0.c    src/17280.c src/17630.c src/17810.c src/178C0.c src/17990.c src/17A50.c 
+M_FILES := src/2CA0.c src/5050.c src/5E30.c src/6380.c src/7D60.c src/B5E0.c src/C9A0.c src/D880.c src/DF40.c src/FED0.c src/109A0.c src/114D0.c src/144A0.c src/lzari.c src/17F00.c src/20CD0.c
+S_FILES := src/18410.s src/1F6E0.s src/1FB00.s
+D_FILES := data/2CA0.rdata.s data/5050.rdata.s data/5E30.data.s data/6380.rdata.s data/6380.data.s data/7D60.rdata.s data/7D60.data.s data/B5E0.rdata.s data/C9A0.rdata.s data/C9A0.data.s data/FED0.rdata.s data/109A0.rdata.s data/109A0.data.s data/114D0.rdata.s data/114D0.data.s data/144A0.rdata.s data/144A0.data.s data/17F00.data.s data/fsblob.fsblob.s
+B_FILES := assets/sfx0.bin assets/sfx1.bin assets/font.bin assets/dummy_font.bin assets/2D259.bin
+
+FSBLOB_FILES := fs/tile1.tg~ fs/tile3.tg~ fs/tile4.tg~ fs/menuf.tg~ fs/bits.tg~
+
+FONT_NAMES := D_80218EC0 D_80218EE4
+
+# Flags
+
+# Flags that change based on whether we're matching or not
+
+ifeq ($(COMPARE),1)
+	PATCHES := 5E2C:6C6F7701 637C:2046696C 7D5C:10433A5C B5DC:0D0A0909 14498:0080982126640015 155C8:AC6200000C085366 17628:8E05003400A21021 17808:8E04005400091880 17988:8FB0001003E00008 17A4C:AE020028 17EF4:02002021240300208C820060 18AB4:FCB00060DCD00070FCB10068 1FAF4:AC1D0002000000008FB70000 2487E:5474 25488:EE6EEEEEEEEEEEEE
+	FSBLOB_ARGS := 
+else
+	PATCHES := 
+	FSBLOB_ARGS := 
+endif
+
+# Rules
+
+# Main rule + match check
+all: compare
+
+include Makefile.common
+
+compare: $(BINARY)
+ifeq ($(COMPARE),1)
+	@sha1sum $<
+	@sha1sum -c $(BASE_NAME).sha1
+endif
+
+$(BUILD_DIR)/assets/$(BASE_NAME)/dummy_font.bin: IMAGE_FORMAT := i4
+$(BUILD_DIR)/assets/$(BASE_NAME)/font.s: EXTRA_PATH := assets/$(BASE_NAME)/extra.png
+
+include $(TOOLS_DIR)/Makefile
